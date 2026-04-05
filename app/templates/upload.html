@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Upload File — ForecastIQ{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h1>Upload Excel File</h1>
+  <p class="text-muted">Accepted formats: <strong>.xlsx</strong>, <strong>.xls</strong> &mdash; maximum {{ config.MAX_UPLOAD_MB }} MB.</p>
+  <hr />
+
+  <form
+    method="POST"
+    action="{{ url_for('upload.upload') }}"
+    enctype="multipart/form-data"
+    class="upload-form"
+  >
+    <div class="form-group">
+      <label for="file">Select your Excel file</label>
+      <input
+        type="file"
+        id="file"
+        name="file"
+        class="form-control file-input"
+        accept=".xlsx,.xls"
+        required
+      />
+      <small class="hint">Only .xlsx and .xls files are accepted.</small>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="width:auto; padding: 0.6rem 2rem;">
+      Upload
+    </button>
+  </form>
+</div>
+{% endblock %}

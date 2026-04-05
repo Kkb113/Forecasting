@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Register — ForecastIQ{% endblock %}
+
+{% block content %}
+<div class="auth-card">
+  <h2>Create Account</h2>
+  <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
+    <div class="form-group">
+      <label for="email">Email address</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        class="form-control"
+        placeholder="you@example.com"
+        required
+        autocomplete="email"
+      />
+    </div>
+    <div class="form-group">
+      <label for="password">Password <small>(minimum 8 characters)</small></label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        class="form-control"
+        placeholder="Choose a strong password"
+        required
+        autocomplete="new-password"
+      />
+    </div>
+    <button type="submit" class="btn btn-primary">Create Account</button>
+  </form>
+  <p class="auth-link">Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
+</div>
+{% endblock %}

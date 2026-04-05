@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Preview: {{ upload.original_name }} — ForecastIQ{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h1>Upload Preview</h1>
+
+  <div class="upload-meta">
+    <div class="meta-row"><span class="meta-label">File</span><span>{{ upload.original_name }}</span></div>
+    <div class="meta-row"><span class="meta-label">Size</span><span>{{ upload.file_size_kb }} KB</span></div>
+    <div class="meta-row"><span class="meta-label">Uploaded</span><span>{{ upload.uploaded_at.strftime('%Y-%m-%d %H:%M') }} UTC</span></div>
+    <div class="meta-row"><span class="meta-label">Status</span><span class="badge badge-{{ upload.status }}">{{ upload.status }}</span></div>
+  </div>
+
+  <hr />
+
+  <h2>Column Names</h2>
+  <div id="columns-container">
+    <p class="text-muted">Loading&hellip;</p>
+  </div>
+
+  <h2 style="margin-top:1.5rem;">Data Preview <small class="text-muted">(first 10 rows)</small></h2>
+  <div id="preview-loading" class="text-muted">Loading preview&hellip;</div>
+  <div id="preview-container" class="preview-scroll"></div>
+
+  <div class="form-actions" style="margin-top:1.5rem;">
+    <a
+      href="{{ url_for('forecast.configure', upload_id=upload.id) }}"
+      class="btn btn-primary"
+      style="width:auto; padding:0.6rem 2rem;"
+    >Configure Forecast</a>
+    <a href="{{ url_for('upload.upload') }}" class="btn btn-secondary">Upload Another File</a>
+  </div>
+</div>
+
+<script>
+(function () {
+  var uploadId = {{ upload.id | tojson }};
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  fetch('/api/upload/' + uploadId + '/preview')
+    .then(function (r) {
+      if (!r.ok) throw new Error('Server returned ' + r.status);
+      return r.json();
+    })
+    .then(function (data) {
+      document.getElementById('preview-loading').style.display = 'none';
+
+      // ── Column pills ──────────────────────────────────────────────
+      var colHtml = '<div class="column-list">';
+      if (data.columns && data.columns.length > 0) {
+        data.columns.forEach(function (col) {
+          colHtml += '<span class="column-pill">' + escapeHtml(col) + '</span>';
+        });
+      } else {
+        colHtml += '<span class="text-muted">No columns detected.</span>';
+      }
+      colHtml += '</div>';
+      document.getElementById('columns-container').innerHTML = colHtml;
+
+      // ── Preview table ─────────────────────────────────────────────
+      var container = document.getElementById('preview-container');
+      if (!data.rows || data.rows.length === 0) {
+        container.innerHTML = '<p class="text-muted">No rows to preview.</p>';
+        return;
+      }
+
+      var html = '<table class="preview-table"><thead><tr>';
+      data.columns.forEach(function (col) {
+        html += '<th>' + escapeHtml(col) + '</th>';
+      });
+      html += '</tr></thead><tbody>';
+      data.rows.forEach(function (row) {
+        html += '<tr>';
+        row.forEach(function (cell) {
+          html += '<td>' + escapeHtml(cell === null || cell === undefined ? '' : cell) + '</td>';
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    })
+    .catch(function (err) {
+      document.getElementById('preview-loading').style.display = 'none';
+      document.getElementById('preview-container').innerHTML =
+        '<p class="alert alert-danger">Could not load preview: ' + escapeHtml(err.message) + '</p>';
+      document.getElementById('columns-container').innerHTML =
+        '<p class="text-muted">Could not load columns.</p>';
+    });
+}());
+</script>
+{% endblock %}

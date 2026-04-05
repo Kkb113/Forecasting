@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Configure Forecast — ForecastIQ{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h1>Configure Forecast</h1>
+  <p class="text-muted">
+    File: <strong>{{ upload.original_name }}</strong>
+    &mdash; {{ upload.file_size_kb }} KB &mdash; uploaded
+    {{ upload.uploaded_at.strftime('%Y-%m-%d') }}
+  </p>
+  <hr />
+
+  <form method="POST" action="{{ url_for('forecast.run') }}">
+    <input type="hidden" name="upload_id" value="{{ upload.id }}" />
+
+    <div class="form-group">
+      <label for="date_column">Date / Time Column</label>
+      <select id="date_column" name="date_column" class="form-control" required>
+        <option value="" disabled selected>— select a column —</option>
+        {% for col in columns %}
+          <option value="{{ col }}">{{ col }}</option>
+        {% endfor %}
+      </select>
+      <small class="hint">Column containing dates or timestamps.</small>
+    </div>
+
+    <div class="form-group">
+      <label for="value_column">Value Column to Forecast</label>
+      <select id="value_column" name="value_column" class="form-control" required>
+        <option value="" disabled selected>— select a column —</option>
+        {% for col in columns %}
+          <option value="{{ col }}">{{ col }}</option>
+        {% endfor %}
+      </select>
+      <small class="hint">Numeric column you want to forecast.</small>
+    </div>
+
+    <div class="form-group">
+      <label for="horizon">Forecast Horizon <small>(1–60 periods)</small></label>
+      <input
+        type="number"
+        id="horizon"
+        name="horizon"
+        class="form-control horizon-input"
+        min="1"
+        max="60"
+        value="12"
+        required
+      />
+      <small class="hint">Number of future periods to predict.</small>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" style="width:auto; padding:0.6rem 2rem;">
+        Run Forecast
+      </button>
+      <a href="{{ url_for('upload.preview_page', upload_id=upload.id) }}" class="btn btn-secondary">
+        Back to Preview
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

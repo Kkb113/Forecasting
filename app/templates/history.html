@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Forecast History — ForecastIQ{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+    <h1>Forecast History</h1>
+    <a href="{{ url_for('upload.upload') }}" class="btn btn-primary" style="width:auto;padding:0.5rem 1.25rem;">
+      New Upload
+    </a>
+  </div>
+
+  {% if runs %}
+  <div class="preview-scroll">
+    <table class="preview-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>File</th>
+          <th>Date Col</th>
+          <th>Value Col</th>
+          <th>Horizon</th>
+          <th>Model</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in runs %}
+        <tr>
+          <td style="white-space:nowrap;">{{ r.created_at.strftime('%Y-%m-%d') }}</td>
+          <td>{{ r.upload.original_name }}</td>
+          <td><code>{{ r.date_column }}</code></td>
+          <td><code>{{ r.value_column }}</code></td>
+          <td class="num-cell">{{ r.horizon }}</td>
+          <td>{{ r.model_used or '—' }}</td>
+          <td><span class="badge badge-{{ r.status }}">{{ r.status }}</span></td>
+          <td style="white-space:nowrap;">
+            <a href="{{ url_for('forecast.results', run_id=r.id) }}">View →</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <p>No forecast runs yet.</p>
+    <p class="text-muted" style="font-size:0.9rem;margin-bottom:1.25rem;">
+      Upload an Excel file and run your first forecast to see results here.
+    </p>
+    <a href="{{ url_for('upload.upload') }}" class="btn btn-primary" style="width:auto;">
+      Upload a File
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Forecast Results — ForecastIQ{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h1>Forecast Results</h1>
+
+  {# ── Run metadata ────────────────────────────────────────────────────── #}
+  <div class="upload-meta">
+    <div class="meta-row">
+      <span class="meta-label">Status</span>
+      <span><span class="badge badge-{{ run.status }}">{{ run.status }}</span></span>
+    </div>
+    <div class="meta-row">
+      <span class="meta-label">File</span>
+      <span>{{ run.upload.original_name }}</span>
+    </div>
+    <div class="meta-row">
+      <span class="meta-label">Date column</span>
+      <span><code>{{ run.date_column }}</code></span>
+    </div>
+    <div class="meta-row">
+      <span class="meta-label">Value column</span>
+      <span><code>{{ run.value_column }}</code></span>
+    </div>
+    <div class="meta-row">
+      <span class="meta-label">Horizon</span>
+      <span>{{ run.horizon }} period{{ 's' if run.horizon != 1 }}</span>
+    </div>
+    {% if run.model_used %}
+    <div class="meta-row">
+      <span class="meta-label">Model</span>
+      <span>{{ run.model_used }}</span>
+    </div>
+    {% endif %}
+    {% if run.frequency %}
+    <div class="meta-row">
+      <span class="meta-label">Frequency</span>
+      <span>{{ run.frequency }}</span>
+    </div>
+    {% endif %}
+    <div class="meta-row">
+      <span class="meta-label">Created</span>
+      <span>{{ run.created_at.strftime('%Y-%m-%d %H:%M') }} UTC</span>
+    </div>
+    {% if run.completed_at %}
+    <div class="meta-row">
+      <span class="meta-label">Completed</span>
+      <span>{{ run.completed_at.strftime('%Y-%m-%d %H:%M') }} UTC</span>
+    </div>
+    {% endif %}
+  </div>
+
+  {# ── Error message (failed runs) ─────────────────────────────────────── #}
+  {% if run.status == 'failed' %}
+  <div class="alert alert-danger" style="margin-top:1rem;">
+    <strong>Forecast failed.</strong> {{ run.error_message }}
+  </div>
+  {% endif %}
+
+  {# ── Chart (complete runs only) ──────────────────────────────────────── #}
+  {% if run.status == 'complete' and predictions %}
+  <hr />
+  <h2 class="section-title">Forecast Chart</h2>
+  <div id="chart-status" class="text-muted chart-loading">Loading chart data&hellip;</div>
+  <div class="chart-container">
+    <canvas id="forecast-chart" data-run-id="{{ run.id }}"></canvas>
+  </div>
+
+  {# ── Predictions table ───────────────────────────────────────────────── #}
+  <h2 class="section-title" style="margin-top:2rem;">Predicted Values</h2>
+  <div class="preview-scroll">
+    <table class="preview-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Period</th>
+          <th>Predicted Value</th>
+          <th>Lower Bound</th>
+          <th>Upper Bound</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in predictions %}
+        <tr>
+          <td>{{ p.period_index }}</td>
+          <td>{{ p.period_label }}</td>
+          <td class="num-cell">{{ "%.4f" | format(p.predicted_value) }}</td>
+          <td class="num-cell">{{ "%.4f" | format(p.lower_bound) if p.lower_bound is not none else '—' }}</td>
+          <td class="num-cell">{{ "%.4f" | format(p.upper_bound) if p.upper_bound is not none else '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {# ── Actions ─────────────────────────────────────────────────────────── #}
+  <div class="form-actions" style="margin-top:1.5rem;">
+    <a href="{{ url_for('forecast.configure', upload_id=run.upload_id) }}" class="btn btn-primary" style="width:auto;padding:0.6rem 1.5rem;">
+      Run Again
+    </a>
+    <a href="{{ url_for('history.history') }}" class="btn btn-secondary">History</a>
+    <a href="{{ url_for('upload.upload') }}" class="btn btn-secondary">Upload New File</a>
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary">Dashboard</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if run.status == 'complete' and predictions %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/forecast_chart.js') }}"></script>
+{% endif %}
+{% endblock %}

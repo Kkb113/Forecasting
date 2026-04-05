@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — ForecastIQ{% endblock %}
+
+{% block content %}
+
+{# ── Welcome + stats ──────────────────────────────────────────────────── #}
+<div class="card" style="margin-bottom:1.5rem;">
+  <h1>Dashboard</h1>
+  <p class="text-muted" style="margin-bottom:1.25rem;">
+    Welcome back, <strong>{{ user.email }}</strong>.
+  </p>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-value">{{ upload_count }}</div>
+      <div class="stat-label">Total Uploads</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ run_count }}</div>
+      <div class="stat-label">Forecast Runs</div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <a href="{{ url_for('upload.upload') }}" class="btn btn-primary" style="width:auto;padding:0.6rem 2rem;">
+      Upload a File
+    </a>
+    <a href="{{ url_for('history.history') }}" class="btn btn-secondary">
+      View History
+    </a>
+  </div>
+</div>
+
+{# ── Two-column recent activity ───────────────────────────────────────── #}
+<div class="dashboard-grid">
+
+  {# Recent uploads #}
+  <div class="card">
+    <h2 class="section-title">Recent Uploads</h2>
+    {% if recent_uploads %}
+      <ul class="recent-list">
+        {% for u in recent_uploads %}
+        <li class="recent-item">
+          <span>
+            <span class="recent-item-name">{{ u.original_name }}</span>
+            <span class="badge badge-{{ u.status }}" style="margin-left:0.4rem;">{{ u.status }}</span>
+          </span>
+          <span class="recent-item-meta">
+            {{ u.uploaded_at.strftime('%b %d, %Y') }}
+            &nbsp;·&nbsp;
+            <a href="{{ url_for('upload.preview_page', upload_id=u.id) }}">Preview</a>
+            &nbsp;·&nbsp;
+            <a href="{{ url_for('forecast.configure', upload_id=u.id) }}">Forecast</a>
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="empty-state">
+        <p>No uploads yet.</p>
+        <a href="{{ url_for('upload.upload') }}" class="btn btn-primary" style="width:auto;">Upload your first file</a>
+      </div>
+    {% endif %}
+  </div>
+
+  {# Recent forecast runs #}
+  <div class="card">
+    <h2 class="section-title">Recent Forecasts</h2>
+    {% if recent_runs %}
+      <ul class="recent-list">
+        {% for r in recent_runs %}
+        <li class="recent-item">
+          <span>
+            <span class="recent-item-name">{{ r.upload.original_name }}</span>
+            <span class="badge badge-{{ r.status }}" style="margin-left:0.4rem;">{{ r.status }}</span>
+          </span>
+          <span class="recent-item-meta">
+            {{ r.created_at.strftime('%b %d, %Y') }}
+            &nbsp;·&nbsp;
+            <a href="{{ url_for('forecast.results', run_id=r.id) }}">View</a>
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="empty-state">
+        <p>No forecast runs yet.</p>
+        {% if upload_count > 0 %}
+          <p class="text-muted" style="font-size:0.85rem;">
+            You have {{ upload_count }} upload{{ 's' if upload_count != 1 }}.
+            Configure a forecast to get started.
+          </p>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
