@@ -1,10 +1,13 @@
+import logging
 import os
 
-from flask import flash, redirect, url_for
+from flask import flash, redirect, render_template, url_for
 from flask import Flask
 
 from .config import get_config
 from .extensions import db, login_manager, bcrypt
+
+logger = logging.getLogger(__name__)
 
 
 def create_app(config_name=None):
@@ -43,9 +46,22 @@ def create_app(config_name=None):
         from .models import user      # noqa: F401 — registers user_loader
         from .models import upload    # noqa: F401 — registers FileUpload
         from .models import forecast  # noqa: F401 — registers ForecastRun + PredictionResult
-        db.create_all()
+        try:
+            db.create_all()
+        except Exception as exc:  # pragma: no cover
+            # Log and continue — avoids crashing on startup if DATABASE_URL is
+            # temporarily unreachable.  The app will surface DB errors per-request.
+            logger.error("db.create_all() failed during startup: %s", exc)
 
     # ── Error handlers ───────────────────────────────────────────────────
+    @flask_app.errorhandler(404)
+    def not_found(e):
+        return render_template("errors/404.html"), 404
+
+    @flask_app.errorhandler(500)
+    def server_error(e):
+        return render_template("errors/500.html"), 500
+
     @flask_app.errorhandler(413)
     def file_too_large(e):
         max_mb = flask_app.config.get("MAX_UPLOAD_MB", 10)

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Page Not Found — ForecastIQ{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:520px;margin:3rem auto;text-align:center;">
+  <h1 style="font-size:3rem;color:#4361ee;margin-bottom:0.25rem;">404</h1>
+  <h2 style="font-size:1.25rem;margin-bottom:1rem;">Page Not Found</h2>
+  <p class="text-muted" style="margin-bottom:1.5rem;">
+    The page you're looking for doesn't exist or has been moved.
+  </p>
+  <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary" style="width:auto;display:inline-block;">
+    Back to Dashboard
+  </a>
+</div>
+{% endblock %}

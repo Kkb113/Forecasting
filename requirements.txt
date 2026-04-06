@@ -10,5 +10,8 @@ xlrd>=2.0.1
 # Phase 3 — forecasting models
 statsmodels>=0.14.0
 scikit-learn>=1.3.0
+# Phase 5 — production server and Azure SQL
+gunicorn>=21.2.0
+pymssql>=2.3.0
 # Testing
 pytest>=8.0.0

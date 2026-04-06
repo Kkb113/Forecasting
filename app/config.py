@@ -22,6 +22,24 @@ class ProductionConfig(Config):
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
 
+    # Azure SQL: recycle connections before Azure's 30-min idle timeout;
+    # pre_ping detects stale connections so Flask-SQLAlchemy reconnects cleanly.
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "pool_recycle": 1800,   # 30 minutes
+        "pool_size": 5,
+        "max_overflow": 10,
+    }
+
+    # On Azure App Service the /home directory is the only persistent volume.
+    # Files written outside /home are wiped on restarts/redeploys.
+    UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER", "/home/uploads")
+
+    # Harden session cookies in production (HTTPS-only, JS-inaccessible).
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
+
 
 class TestingConfig(Config):
     TESTING = True
